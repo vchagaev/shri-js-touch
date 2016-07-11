@@ -213,7 +213,6 @@ function Door2(number, onUnlock) {
             distance = Math.pow(x[0] - x[1], 2) + Math.pow(y[0] - y[1], 2);
             if (!baseDistance) {
                 baseDistance = distance;
-                pinInput.value += '0';
             }
             var initScale = parseFloat(formula.getAttribute('scale')) || 2;
             var newScale = initScale + (distance - baseDistance) / 1000000;
