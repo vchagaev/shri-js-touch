@@ -1,0 +1,30 @@
+{
+  "name": "shri-js-touch",
+  "version": "1.0.0",
+  "description": "Game for multi-touch devices",
+  "main": "index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vchagaev/shri-js-touch.git"
+  },
+  "keywords": [
+    "shri",
+    "js",
+    "touch",
+    "game"
+  ],
+  "author": "Vladislav Chagaev",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/vchagaev/shri-js-touch/issues"
+  },
+  "homepage": "https://github.com/vchagaev/shri-js-touch#readme",
+  "devDependencies": {
+    "babel-core": "^6.10.4",
+    "babel-preset-es2015": "^6.9.0",
+    "gulp": "^3.9.1"
+  }
+}
