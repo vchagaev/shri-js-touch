@@ -195,6 +195,7 @@ body {
 
 .box-2 {
     max-width: 100%;
+    will-change: transform;
 }
 
 .answer {
@@ -215,4 +216,15 @@ body {
 
 .formula {
     max-width: 2%;
+    will-change: max-width;
+}
+
+.enemy-container {
+    width: 300px;
+}
+
+.enemy {
+    max-width: 100%;
+    width: 100%;
+    will-change: transform, opacity;
 }
