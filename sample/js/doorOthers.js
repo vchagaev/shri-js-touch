@@ -169,6 +169,8 @@ function Door2(number, onUnlock) {
     var pointers = {count: 0};
     var distance = 0; //расстояние между двумя поинтерами
     var baseDistance = undefined; //начальное расстояние между двумя поинтерами
+    var initScale = undefined;
+    var ids = [];
 
     block.addEventListener('pointerdown', _onButtonPointerDown.bind(this));
     block.addEventListener('pointermove', _onMove.bind(this));
@@ -183,43 +185,45 @@ function Door2(number, onUnlock) {
             pointerType: e.pointerType,
             pointerId: e.pointerId
         };
-        pointers.count += 1;
         baseDistance = undefined;
+        ids.push(e.pointerId);
     }
 
     function _onButtonPointerUp(e) {
         if (pointers[e.pointerId]) {
             delete pointers[e.pointerId];
-            pointers.count -= 1;
             baseDistance = undefined;
+            var index = ids.indexOf(e.pointerId);
+            if (index > -1) {
+                ids.splice(index, 1);
+            }
         }
     }
 
     function _onMove(e) {
-        if (pointers.count === 2) {
+        if (ids.length === 2) {
             var x = [];
             var y = [];
-            for (prop in pointers) {
-                if (pointers.hasOwnProperty(prop) && prop !== 'count') {
-                    if (e.pointerId == prop) {
-                        pointers[prop].x = e.clientX;
-                        pointers[prop].y = e.clientY;
-                    }
-                    x.push(pointers[prop].x);
-                    y.push(pointers[prop].y);
+            ids.forEach(function (curId) {
+                if (curId == e.pointerId) {
+                    pointers[curId].x = e.clientX;
+                    pointers[curId].y = e.clientY;
                 }
-            }
+                x.push(pointers[curId].x);
+                y.push(pointers[curId].y);
+            });
             // Пифагор вроде
             distance = Math.pow(x[0] - x[1], 2) + Math.pow(y[0] - y[1], 2);
             if (!baseDistance) {
                 baseDistance = distance;
+                initScale = parseFloat(formula.getAttribute('scale')) || 2;
             }
-            var initScale = parseFloat(formula.getAttribute('scale')) || 2;
-            var newScale = initScale + (distance - baseDistance) / 1000000;
+            var newScale = initScale + (distance - baseDistance) / 4000;
             formula.style['max-width'] = newScale + '%';
             formula.setAttribute('scale', newScale);
         }
     }
+
     // Решение квеста
     pinInput.oninput = function () {
         if (pinInput.value === '450') {
@@ -240,11 +244,94 @@ Door2.prototype.constructor = DoorBase;
 function Box(number, onUnlock) {
     DoorBase.apply(this, arguments);
 
+    var block = this.popup.querySelector('.door-block');
+    var enemy = this.popup.querySelector('.enemy');
+
+    var pointers = {};
+    var distance = 0; //расстояние между двумя поинтерами
+    var baseDistance = undefined; //начальное расстояние между двумя поинтерами
+    var allowDiff = 0.4;
+    var baseX = undefined;
+    var baseY = undefined;
+    var initRotate = undefined;
+    var ids = [];
+
+    block.addEventListener('pointerdown', _onButtonPointerDown.bind(this));
+    block.addEventListener('pointermove', _onMove.bind(this));
+    block.addEventListener('pointerup', _onButtonPointerUp.bind(this));
+    block.addEventListener('pointercancel', _onButtonPointerUp.bind(this));
+    block.addEventListener('pointerleave', _onButtonPointerUp.bind(this));
+
+    function _onButtonPointerDown(e) {
+        pointers[e.pointerId] = {
+            x: e.clientX,
+            y: e.clientY,
+            pointerType: e.pointerType,
+            pointerId: e.pointerId
+        };
+        baseDistance = undefined;
+        baseX = undefined;
+        baseY = undefined;
+        ids.push(e.pointerId);
+    }
+
+    function _onButtonPointerUp(e) {
+        if (pointers[e.pointerId]) {
+            delete pointers[e.pointerId];
+            baseDistance = undefined;
+            baseX = undefined;
+            baseY = undefined;
+            var index = ids.indexOf(e.pointerId);
+            if (index > -1) {
+                ids.splice(index, 1);
+            }
+        }
+    }
+
+    function _onMove(e) {
+        if (ids.length === 2) {
+            var x = [];
+            var y = [];
+            ids.forEach(function (curId) {
+                if (curId == e.pointerId) {
+                    pointers[curId].x = e.clientX;
+                    pointers[curId].y = e.clientY;
+                }
+                x.push(pointers[curId].x);
+                y.push(pointers[curId].y);
+            });
+            // Пифагор вроде
+            distance = Math.pow(x[0] - x[1], 2) + Math.pow(y[0] - y[1], 2);
+            if (!baseDistance) {
+                baseDistance = distance;
+                baseX = x[1] - x[0];
+                baseY = y[1] - y[0];
+                initRotate = parseFloat(enemy.getAttribute('rotate')) || 0;
+            }
+            if (baseDistance >= distance * (1 - allowDiff) && baseDistance <= distance * (1 + allowDiff)) {
+                var curX = x[1] - x[0];
+                var curY = y[1] - y[0];
+                var left = baseX * curY - curX * baseY;
+                var right = baseX * curX + baseY * curY;
+                var newRot = Math.atan2(baseX * curY - curX * baseY, baseX * curX + baseY * curY);
+                var newDeg = initRotate + newRot * 100;
+                enemy.style.transform = 'rotate(' + newDeg + 'deg)';
+                enemy.style.opacity = 1.1 - Math.abs(newDeg) / 1800;
+                enemy.setAttribute('rotate', newDeg);
+                if (Math.abs(newDeg) >= 1800) {
+                    enemy.style.opacity = 0;
+                    this.unlock();
+                }
+            }
+        }
+    }
+
+
     // ==== Напишите свой код для открытия сундука здесь ====
     // Для примера сундук откроется просто по клику на него
-    this.popup.addEventListener('click', function () {
-        this.unlock();
-    }.bind(this));
+    // this.popup.addEventListener('click', function () {
+    //     this.unlock();
+    // }.bind(this));
     // ==== END Напишите свой код для открытия сундука здесь ====
 
     this.showCongratulations = function () {
