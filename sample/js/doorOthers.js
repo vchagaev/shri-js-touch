@@ -63,10 +63,10 @@ function Door1(number, onUnlock) {
     DoorBase.apply(this, arguments);
 
     // ==== Напишите свой код для открытия второй двери здесь ====
-    // Для примера дверь откроется просто по клику на неё
     var box = this.popup.querySelector('.box-2-container');
     var frameGuid;
     var primaryPointerId;
+    var timeToBase = 60;
 
     box.addEventListener('pointerdown', _onButtonPointerDown.bind(this));
     box.addEventListener('pointermove', _onMove.bind(this));
@@ -74,6 +74,11 @@ function Door1(number, onUnlock) {
     box.addEventListener('pointercancel', _onButtonPointerUp.bind(this));
     box.addEventListener('pointerleave', _onButtonPointerUp.bind(this));
 
+    /**
+     * Обрабатываем нажатие
+     * @param e
+     * @private
+     */
     function _onButtonPointerDown(e) {
         if (!primaryPointerId) {
             // Останавливаем анимацию
@@ -111,7 +116,7 @@ function Door1(number, onUnlock) {
             box.setAttribute('x', xDiff);
             box.setAttribute('y', yDiff);
             i += 1;
-            if (i >= 60 || !frameGuid) {
+            if (i >= timeToBase || !frameGuid) {
                 cancelAnimationFrame(frameGuid);
                 frameGuid = undefined;
             } else {
@@ -122,17 +127,27 @@ function Door1(number, onUnlock) {
         frameGuid = requestAnimationFrame(moving);
     }
 
+    /**
+     * Обрабатываем окончание нажатия
+     * @param e
+     * @private
+     */
     function _onButtonPointerUp(e) {
         if (primaryPointerId && primaryPointerId.pointerId === e.pointerId) {
             primaryPointerId = undefined;
             var initX = parseFloat(box.getAttribute('x'));
             var initY = parseFloat(box.getAttribute('y'));
-            var perX = initX / 60;
-            var perY = initY / 60;
+            var perX = initX / timeToBase;
+            var perY = initY / timeToBase;
             toBasePosition(initX, initY, perX, perY);
         }
     }
 
+    /**
+     * Обрабатываем передвижение нажатия
+     * @param e
+     * @private
+     */
     function _onMove(e) {
         if (primaryPointerId && primaryPointerId.pointerId === e.pointerId) {
             var initX = parseFloat(box.getAttribute('init-x')) || 0;
@@ -144,11 +159,14 @@ function Door1(number, onUnlock) {
             box.setAttribute('x', xDiff);
             box.setAttribute('y', yDiff);
             // Если находится в топе по середине то квест выполнили
-            if (xDiff > -10 && xDiff <= 10 && yDiff <= document.documentElement.clientHeight / -2) {
+            var allowDiff = 10;
+            if (Math.abs(xDiff) <= allowDiff && yDiff <= document.documentElement.clientHeight / -2) {
                 this.unlock();
             }
         }
     }
+
+    // ==== END Напишите свой код для открытия третей двери здесь ====
 
 }
 Door1.prototype = Object.create(DoorBase.prototype);
@@ -163,6 +181,7 @@ Door1.prototype.constructor = DoorBase;
 function Door2(number, onUnlock) {
     DoorBase.apply(this, arguments);
 
+    // ==== Напишите свой код для открытия второй двери здесь ====
     var pinInput = this.popup.querySelector('.answer');
     var block = this.popup.querySelector('.door-block');
     var formula = this.popup.querySelector('.formula');
@@ -201,7 +220,8 @@ function Door2(number, onUnlock) {
     }
 
     function _onMove(e) {
-        if (ids.length === 2) {
+        var fingersNumber = 2;
+        if (ids.length === fingersNumber) {
             var x = [];
             var y = [];
             ids.forEach(function (curId) {
@@ -218,7 +238,8 @@ function Door2(number, onUnlock) {
                 baseDistance = distance;
                 initScale = parseFloat(formula.getAttribute('scale')) || 2;
             }
-            var newScale = initScale + (distance - baseDistance) / 4000;
+            var scalingIndex = 4000;
+            var newScale = initScale + (distance - baseDistance) / scalingIndex;
             formula.style['max-width'] = newScale + '%';
             formula.setAttribute('scale', newScale);
         }
@@ -230,6 +251,7 @@ function Door2(number, onUnlock) {
             this.unlock();
         }
     }.bind(this);
+    // ==== END Напишите свой код для открытия третей двери здесь ====
 }
 Door2.prototype = Object.create(DoorBase.prototype);
 Door2.prototype.constructor = DoorBase;
@@ -244,6 +266,7 @@ Door2.prototype.constructor = DoorBase;
 function Box(number, onUnlock) {
     DoorBase.apply(this, arguments);
 
+    // ==== Напишите свой код для открытия второй двери здесь ====
     var block = this.popup.querySelector('.door-block');
     var enemy = this.popup.querySelector('.enemy');
 
@@ -316,9 +339,11 @@ function Box(number, onUnlock) {
                 var newRot = Math.atan2(baseX * curY - curX * baseY, baseX * curX + baseY * curY);
                 var newDeg = initRotate + newRot * 100;
                 enemy.style.transform = 'rotate(' + newDeg + 'deg)';
-                enemy.style.opacity = 1.1 - Math.abs(newDeg) / 1800;
+
+                var degreeToPass = 1800;
+                enemy.style.opacity = 1.1 - Math.abs(newDeg) / degreeToPass;
                 enemy.setAttribute('rotate', newDeg);
-                if (Math.abs(newDeg) >= 1800) {
+                if (Math.abs(newDeg) >= degreeToPass) {
                     enemy.style.opacity = 0;
                     this.unlock();
                 }
@@ -326,12 +351,6 @@ function Box(number, onUnlock) {
         }
     }
 
-
-    // ==== Напишите свой код для открытия сундука здесь ====
-    // Для примера сундук откроется просто по клику на него
-    // this.popup.addEventListener('click', function () {
-    //     this.unlock();
-    // }.bind(this));
     // ==== END Напишите свой код для открытия сундука здесь ====
 
     this.showCongratulations = function () {
